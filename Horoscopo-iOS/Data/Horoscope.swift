@@ -5,12 +5,15 @@
 //  Created by Turno Mananas on 20/11/2026.
 //
 
+import UIKit
+
 struct Horoscope {
     let id: String
     let name: String
     let dates: String
-    let sign: String
-        return UIImage(named: "\(id)-icon")
+    var sign: UIImage {
+        return UIImage(named: "\(id)-icon")!
+    }
     
     static let horoscopeList: [Horoscope] = [
         Horoscope(id: "aries", name:"Aries", dates: "March 21 to April 19"),
@@ -22,7 +25,7 @@ struct Horoscope {
         Horoscope(id: "libra", name:"Libra", dates: "September 23 to October 22"),
         Horoscope(id: "scorpio", name:"Scorpio", dates: "October 23 to November 21"),
         Horoscope(id: "sagittarius", name:"Sagittarius", dates: "November 22 to December 21"),
-        Horoscope(id: "capricorn", name:"Capricorn", dates: "December 22 to JAnuary 19"),
+        Horoscope(id: "capricorn", name:"Capricorn", dates: "December 22 to January 19"),
         Horoscope(id: "aquarius", name:"Aquarius", dates: "January 20 to Feabruary 18"),
         Horoscope(id: "pisces", name:"Pisces", dates: "February 19 to March 20")
     
