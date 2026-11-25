@@ -6,11 +6,16 @@
 //
 
 import UIKit
+import Foundation
+import OSLog
 
 class DetailViewController: UIViewController {
     
     var horoscope: Horoscope!
     var isFavorite = false
+    
+    
+    @IBOutlet weak var horoscopoLabel: UILabel!
     
     @IBOutlet weak var favoriteMenuItem: UIBarButtonItem!
     
@@ -26,6 +31,8 @@ class DetailViewController: UIViewController {
         
         isFavorite = SessionManager().isFavorite(id: horoscope.id)
         setFavoriteIcon()
+        
+        getHoroscopePrediction()
     }
     
     func setFavoriteIcon() {
@@ -63,6 +70,60 @@ class DetailViewController: UIViewController {
               self.present(activityViewController, animated: true, completion: nil)
               
           }
+    
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "API REST")
+
+    struct HoroscopeResponse: Decodable {
+        struct HoroscopeData: Decodable {
+            let horoscope: String
+        }
+        let data: HoroscopeData
+    }
+
+    func getHoroscopePrediction(period: String = "daily") {
+        horoscopoLabel.text = "Consultando con las estrellas..."
+
+        
+        Task { @MainActor in
+            guard var components = URLComponents(string: "https://freehoroscopeapi.com/api/v1/get-horoscope/\(period)") else {
+                logger.error("URL inválida para el periodo: \(period, privacy: .public)")
+                return
+            }
+            components.queryItems = [
+                URLQueryItem(name: "sign", value: horoscope.id)
+            ]
+
+            guard let url = components.url else {
+                logger.error("No se pudo construir la URL final")
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    logger.error("Respuesta HTTP inválida")
+                    return
+                }
+
+                if httpResponse.statusCode == 200 {
+                    if let rawJSON = String(data: data, encoding: .utf8) {
+                        logger.info("\(rawJSON, privacy: .public)")
+                    }
+
+                    let decoded = try JSONDecoder().decode(HoroscopeResponse.self, from: data)
+                    horoscopoLabel.text = decoded.data.horoscope
+                } else {
+                    logger.warning("Status code: \(httpResponse.statusCode)")
+                }
+            } catch {
+                logger.error("\(error.localizedDescription, privacy: .public)")
+            }
+        }
+    }
           
         
     }
